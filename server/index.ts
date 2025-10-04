@@ -44,7 +44,7 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === "production") {
     // only used locally with `vercel dev`
     const { createServer } = await import("http");
     const server = createServer(app);
