@@ -24,11 +24,9 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
@@ -37,24 +35,27 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
     throw err;
   });
-  if (app.get("env") === "development") {
+
+  if (process.env.NODE_ENV === "development") {
+    // only used locally with `vercel dev`
+    const { createServer } = await import("http");
+    const server = createServer(app);
     await setupVite(app, server);
+    server.listen(8000, () => {
+      console.log("Local dev server at http://127.0.0.1:8000");
+    });
   } else {
     serveStatic(app);
   }
-
-  const port =8000;
-  app.listen(8000, "127.0.0.1", () => {
-  console.log("Server running at http://127.0.0.1:8000");
-});
-
 })();
+
+// 🚀 Export the app for Vercel
+export default app;
